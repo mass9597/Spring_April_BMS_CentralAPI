@@ -1,6 +1,9 @@
 package com.bms.central_api_v1.util;
 
+import com.bms.central_api_v1.enums.StatusType;
 import com.bms.central_api_v1.model.AppUser;
+import com.bms.central_api_v1.model.Theater;
+import com.bms.central_api_v1.requestdto.CreateTheaterRB;
 import com.bms.central_api_v1.requestdto.CreateUserDb;
 import org.springframework.stereotype.Service;
 
@@ -22,5 +25,19 @@ public class Mapper {
 
         return user;
 
+    }
+
+    public Theater mapCreateTheaterRBToTheater(CreateTheaterRB createTheaterRB,AppUser owner){
+
+        Theater theater = new Theater();
+
+        theater.setAddress(createTheaterRB.getAddress());
+        theater.setName(createTheaterRB.getName());
+        theater.setState(createTheaterRB.getState());
+        theater.setPinCode(createTheaterRB.getPinCode());
+        theater.setOwner(owner);
+        theater.setStatus(StatusType.REQUEST_RAISED.toString());
+
+        return theater;
     }
 }

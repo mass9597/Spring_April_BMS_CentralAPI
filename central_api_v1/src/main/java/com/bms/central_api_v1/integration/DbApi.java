@@ -1,18 +1,25 @@
 package com.bms.central_api_v1.integration;
 
 import com.bms.central_api_v1.model.AppUser;
+import com.bms.central_api_v1.model.Theater;
+import com.bms.central_api_v1.requestdto.CreateTheaterRB;
 import com.bms.central_api_v1.requestdto.CreateUserDb;
 import com.bms.central_api_v1.util.Mapper;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.UUID;
 
-public class DbApi {
+@Service
+public class DbApi extends RestApi{
 
     @Value("${db.api.base}")
     String baseUrl;
@@ -20,21 +27,48 @@ public class DbApi {
     @Autowired
     Mapper mapper;
 
-    public AppUser CreateUser(CreateUserDb createUserDb){
+    @Autowired
+    ModelMapper modelMapper;
+
+    public AppUser createUser(CreateUserDb createUserDb){
 
         AppUser user = mapper.mapCreateUserDbToAppUser(createUserDb); // this will convert the requestdto to appuser class
 
-        String url = baseUrl+"/user/create";
-        URI finalUrl = URI.create(url);
+        String apiEndPoint = "/user/create";
 
-        RequestEntity request = RequestEntity.post(finalUrl).body(user);
+        Object response = this.makePostCall(baseUrl,apiEndPoint,user, new HashMap<>());
 
-        //TO HIT the endpoint we need resttemplate library
+        AppUser res = modelMapper.map(response,AppUser.class);
 
-        RestTemplate restTemplate = new RestTemplate();
+        return res;
+    }
 
-        ResponseEntity<AppUser> response = restTemplate.exchange(finalUrl, HttpMethod.POST,request, AppUser.class);
+    public AppUser getUserById(UUID userID){
 
-        return response.getBody();
+        String endPoint = "/user/"+ userID.toString();
+
+        Object response = this.makeGetCall(baseUrl,endPoint,new HashMap<>());
+
+        if(response == null){
+            return null;
+        }
+
+        AppUser user = modelMapper.map(response,AppUser.class);
+
+        return user;
+
+    }
+
+    public Theater createTheater(CreateTheaterRB createTheaterRB, AppUser owner){
+
+        // convert the dto to theater class
+
+        Theater theater = mapper.mapCreateTheaterRBToTheater(createTheaterRB,owner);
+
+        String endPoint = "/theater/create";
+
+        Object res = this.makePostCall(baseUrl,endPoint,theater,new HashMap<>());
+
+        return modelMapper.map(res,Theater.class);
     }
 }
